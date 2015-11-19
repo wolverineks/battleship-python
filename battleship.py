@@ -14,8 +14,8 @@ def layout():
     print""
     print""
 
-def welcome():
-    layout()
+# def welcome():
+#     layout()
 
 def display_logo():
 
@@ -43,7 +43,7 @@ def display_title():
     print "    \ \____________\ \_______\ \_______\ \_______\ \_______\ \__\    \ \__\ \_______\           \ \__\ \ \_______\ "
     print "     \|____________|\|_______|\|_______|\|_______|\|_______|\|__|     \|__|\|_______|            \|__|  \|_______| "
     print "  ________  ________  _________  _________  ___       _______   ________  ___  ___  ___  ________    "
-    print " |\   __  \|\   __  \|\___   ___\ ___   ___ \  \     |\  ___ \ |\   ____\|\  \|\  \|\  \|\   __  \   "
+    print " |\   __  \|\   __  \|\___   ___\ ___   __\|\  \     |\  ___ \ |\   ____\|\  \|\  \|\  \|\   __  \   "
     print " \ \  \|\ /\ \  \|\  \|___ \  \_\|___ \  \_\ \  \    \ \   _ / \ \  \___|\ \  \_\  \ \  \ \  \|\  \  "
     print "  \ \   __  \ \   __  \   \ \  \     \ \  \ \ \  \    \ \  \_/ _\ \_____  \ \   __  \ \  \ \   ____\ "
     print "   \ \  \|\  \ \  \ \  \   \ \  \     \ \  \ \ \  \____\ \  \_|\ \|____|\  \ \  \ \  \ \  \ \  \___| "
@@ -51,59 +51,106 @@ def display_title():
     print "     \|_______|\|__|\|__|    \|__|      \|__|  \|_______|\|_______|\_________\|__|\|__|\|__|\|__|    "
     print "                                                                   \|_________|                      "
 
+def choose_board_size():
+    global board_size
+    
+    try:
+      board_size = int(raw_input("How big would you like the board?: "))
+    except ValueError:
+      layout()
+      print "Please choose a number."
+      choose_board_size()
+
 def create_board():
     global board
     global turns
-    global num
     board = []
-    num = int(raw_input("How big would you like the board?: "))
-    turns = num
-    for x in range(0, num):
-        board.append(["O"] * num)
+    
+    turns = board_size
+    
+    for x in range(0, board_size):
+        board.append(["[]"] * board_size)
 
-def random_row(board):
+def random_row():
     return randint(0, len(board) - 1)
 
-def random_col(board):
+def random_col():
     return randint(0, len(board[0]) - 1)
 
 def place_ship():
     global ship_row
     global ship_col
-    ship_row = random_row(board)
-    ship_col = random_col(board)
+    ship_row = random_row()
+    ship_col = random_col()
 
 def print_board():
     global turns
     for row in board:
         print " ".join(row)
-    print "--" * num
+    print "***" * board_size
     print "Torpedos Left: %s" % (turns)
 
-def get_guess():
-    global turns
+def guess_sanitize():
+    if guess_row not in range(board_size) or guess_col not in range(board_size):
+        layout()
+        print_board()
+        print "Your torpedo has gone off the map!"
+
+        get_guess()
+
+def get_guess_row():
     global guess_row
-    global guess_col
 
     if turns > 0:
-      guess_row = int(raw_input("Guess Row: "))
-      guess_col = int(raw_input("Guess Col: "))
-      turns -= 1
+      try:
+        user_row = int(raw_input("Range: "))
+        guess_row = board_size - user_row
+      except ValueError:
+        layout()
+        print_board()
+        print "Please choose a number."
+        get_guess_row()
     else: 
       print "***GAME OVER***"
-      exit()
+      replay()
 
-def debug(ship_row, ship_col):
-    print "Row: %s, Column: %s" % (ship_row, ship_col)
+def get_guess_col():
+    global guess_col
 
-def hit_or_miss(guess_row, guess_col):
-    if guess_row == ship_row and guess_col == ship_col:
+    try:
+      user_col = int(raw_input("Bearing: "))
+      guess_col = user_col - 1
+    except ValueError:
+      layout()
+      print_board()
+      print "Please choose a number."
+      get_guess_col()
+
+def get_guess():
+    get_guess_row()
+    get_guess_col()
+
+def debug():
+    print "Range: %s, Bearing: %s" % (ship_row, ship_col)
+
+def decrement_turns():
+    global turns
+    turns -= 1
+
+def hit_or_miss():
+    guess_sanitize()
+
+    if guess_col == ship_col and guess_row == ship_row: 
         print "Congratulations! You sank my battleship!"
+        print "***GAME OVER***"
+        replay()
     else:
-        print_board()
-        turn()
-        print "You missed my battleship!"
-        print "Guess again"
+        try:
+            board[guess_row][guess_col] = " 0"
+            print_board()
+        except IndexError:
+            print "Ship: Range: %s, Bearing: %s" % (ship_row, ship_col) 
+            print "Guess: Range: %s, Bearing: %s" % (guess_row, guess_col) 
 
 def turn():
 
@@ -111,15 +158,29 @@ def turn():
 
     print_board()
     
-    debug(ship_row, ship_col)
+    debug()
       
-    get_guess()  
+    get_guess()
 
-    hit_or_miss(guess_row, guess_col)
+    decrement_turns()
+
+    hit_or_miss()
+
+    turn()
+
+def replay():
+    replay = raw_input("Would you like to play again? (y/n) ")
+
+    if replay == "y":
+      game()
+    else:
+      exit()
 
 def game():
 
-    welcome()
+    layout()
+
+    choose_board_size()
 
     create_board()
 
