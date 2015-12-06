@@ -58,7 +58,7 @@ def choose_board_size():
       board_size = int(input("How big would you like the board?: "))
     except ValueError:
       layout()
-      print"Please choose a number."
+      print("Please choose a number.")
       choose_board_size()
 
 def create_board():
