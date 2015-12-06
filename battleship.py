@@ -86,7 +86,7 @@ def place_ship():
 def printboard():
     global turns
     for row in board:
-        print" ".join(row)
+        print(" ".join(row))
     print("***" * board_size)
     print("Torpedos Left: %s" % (turns))
 
